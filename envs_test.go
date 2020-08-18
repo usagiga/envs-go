@@ -25,14 +25,14 @@ func initConfig(t *testing.T) {
 }
 
 type testConfig1 struct {
-	IntVal    int    `env:"ENVS_TEST_INT"`
-	StringVal string `env:"ENVS_TEST_STRING"`
-	BoolVal   bool   `env:"ENVS_TEST_BOOL"`
+	IntVal    int    `envs:"ENVS_TEST_INT"`
+	StringVal string `envs:"ENVS_TEST_STRING"`
+	BoolVal   bool   `envs:"ENVS_TEST_BOOL"`
 }
 
 type testConfig2 struct {
-	StringVal string `env:"ENVS_TEST_STRING"`
-	ErrorVal  string `env:"ENVS_TEST_ERROR"`
+	StringVal string `envs:"ENVS_TEST_STRING"`
+	ErrorVal  string `envs:"ENVS_TEST_ERROR"`
 }
 
 func TestLoad(t *testing.T) {
