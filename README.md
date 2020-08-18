@@ -1,16 +1,13 @@
-# ${REPO_NAME}
+# envs-go
 
-${REPO_DESC}
+Easiest environment variables binder in golang
 
 
 ## Installation
 
 ```sh
-$ go get github.com/usagiga/${REPO_NAME}
+$ go get github.com/usagiga/envs-go
 ```
-
-And you can use Docker Compose.
-See also [docs](./docs/docker.md).
 
 
 ## Usage
@@ -19,7 +16,8 @@ See also [docs](./docs/docker.md).
 
 ## Dependencies
 
-- Go
+- Go (1.15 or higher)
+- [golang.org/x/xerrors](https://pkg.go.dev/golang.org/x/xerrors)
 
 
 ## License

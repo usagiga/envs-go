@@ -2,17 +2,13 @@ xxx:
 	@echo "Please select optimal option."
 
 build:
-	@go build -o go-template .
+	@go build -o envs-go .
 
 clean:
-	@rm -f ./go-template
-	@rm -f ./docker/__debug_bin
+	@rm -f ./envs-go
 
 run:
 	@go run .
-
-debug:
-	@air
 
 test:
 	@go test -v "./..."

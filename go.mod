@@ -1,3 +1,3 @@
-module github.com/usagiga/go-template
+module github.com/usagiga/envs-go
 
 go 1.15
