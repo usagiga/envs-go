@@ -17,24 +17,35 @@ import (
 // - Specified environment variables has no value
 //
 // Some values are passed, it raises error:
-// - (int) Can't cast value
-//
-// Some values are passed, it raises panic:
 // - Passed `out` is NOT pointer or interface
 // - Passed `out`'s element is NOT struct
 // - Fields cannot be assignable value(readonly or unaddressable)
+// - (int) Can't cast value
 func Load(out interface{}) (err error) {
-	t := reflect.TypeOf(out).Elem()
-	v := reflect.ValueOf(out).Elem()
-	fields := t.NumField()
+	kind := reflect.TypeOf(out).Kind()
+	if kind != reflect.Ptr && kind != reflect.Interface {
+		return xerrors.New("Passed incompatible type. `out` must be pointer or interface.")
+	}
 
-	for i := 0; i < fields; i++ {
-		fType := t.Field(i)
-		fTypeKind := fType.Type.Kind()
-		fVal := v.Field(i)
+	elemT := reflect.TypeOf(out).Elem()
+	elemV := reflect.ValueOf(out).Elem()
+
+	elemK := elemT.Kind()
+	if elemK != reflect.Struct {
+		return xerrors.New("Passed incompatible type. `out`'s element must be struct.")
+	}
+
+	for i := 0; i < elemT.NumField(); i++ {
+		fieldType := elemT.Field(i)
+		fieldKind := fieldType.Type.Kind()
+		fieldVal := elemV.Field(i)
+
+		if !fieldVal.CanSet() {
+			return xerrors.New("Passed incompatible type. `out`'s fields must be assignable.")
+		}
 
 		// Look up `env` struct tag
-		envKey, ok := fType.Tag.Lookup("envs")
+		envKey, ok := fieldType.Tag.Lookup("envs")
 		if !ok || envKey == "" {
 			continue
 		}
@@ -45,30 +56,26 @@ func Load(out interface{}) (err error) {
 		}
 
 		// Look up env
-		envStrVal, ok := os.LookupEnv(envKey)
+		envVal, ok := os.LookupEnv(envKey)
 		if !ok || envKey == "" {
 			continue
 		}
 
 		// Set the value
-		switch fTypeKind {
+		switch fieldKind {
 		case reflect.String:
-			envRefVal := reflect.ValueOf(envStrVal)
-			fVal.Set(envRefVal)
+			newFieldVal := envVal
+			fieldVal.SetString(newFieldVal)
 		case reflect.Int:
-			// Cast
-			envIntVal, err := strconv.Atoi(envStrVal)
+			newFieldVal, err := strconv.Atoi(envVal)
 			if err != nil {
 				return xerrors.Errorf("Can't cast int value: %w", err)
 			}
-			envRefVal := reflect.ValueOf(envIntVal)
 
-			fVal.Set(envRefVal)
+			fieldVal.SetInt(int64(newFieldVal))
 		case reflect.Bool:
-			envBoolVal := envStrVal == "true"
-			envRefVal := reflect.ValueOf(envBoolVal)
-
-			fVal.Set(envRefVal)
+			newFieldVal := envVal == "true"
+			fieldVal.SetBool(newFieldVal)
 		}
 	}
 
