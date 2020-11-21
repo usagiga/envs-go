@@ -22,42 +22,54 @@ import (
 // - Fields cannot be assignable value(readonly or unaddressable)
 // - (int) Can't cast value
 func Load(out interface{}) (err error) {
-	kind := reflect.TypeOf(out).Kind()
-	if kind != reflect.Ptr && kind != reflect.Interface {
+	outKind := reflect.TypeOf(out).Kind()
+	if outKind != reflect.Ptr && outKind != reflect.Interface {
 		return xerrors.New("Passed incompatible type. `out` must be pointer or interface.")
 	}
 
-	elemT := reflect.TypeOf(out).Elem()
-	elemV := reflect.ValueOf(out).Elem()
-
-	elemK := elemT.Kind()
-	if elemK != reflect.Struct {
+	outType := reflect.TypeOf(out).Elem()
+	outValue := reflect.ValueOf(out).Elem()
+	outKind = outType.Kind()
+	if outKind != reflect.Struct {
 		return xerrors.New("Passed incompatible type. `out`'s element must be struct.")
 	}
 
-	for i := 0; i < elemT.NumField(); i++ {
-		fieldType := elemT.Field(i)
+	for i := 0; i < outType.NumField(); i++ {
+		fieldType := outType.Field(i)
 		fieldKind := fieldType.Type.Kind()
-		fieldVal := elemV.Field(i)
+		fieldVal := outValue.Field(i)
 
 		if !fieldVal.CanSet() {
 			return xerrors.New("Passed incompatible type. `out`'s fields must be assignable.")
 		}
 
-		// Look up `env` struct tag
-		envKey, ok := fieldType.Tag.Lookup("envs")
-		if !ok || envKey == "" {
-			continue
-		}
+		// Get `envs` struct tag
+		envKey := fieldType.Tag.Get("envs")
 
 		// If "-", skip it
 		if envKey == "-" {
 			continue
 		}
 
+		// TODO : If pointer, process it's element
+
+		// If nested, process it recursive
+		if fieldKind == reflect.Struct {
+			err = Load(fieldVal.Addr().Interface())
+			if err != nil {
+				return xerrors.Errorf("Error raised in nested value: %w", err)
+			}
+			continue
+		}
+
+		// If `envs` struct tag not set, skip it
+		if envKey == "" {
+			continue
+		}
+
 		// Look up env
 		envVal, ok := os.LookupEnv(envKey)
-		if !ok || envKey == "" {
+		if !ok || envVal == "" {
 			continue
 		}
 

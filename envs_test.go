@@ -35,6 +35,14 @@ type testConfig2 struct {
 	ErrorVal  string `envs:"ENVS_TEST_ERROR"`
 }
 
+type testConfig3 struct {
+	StructVal T `envs:"ENVS_TEST_XXX"`
+}
+
+type T struct {
+	TestVal string `envs:"ENVS_TEST_STRING"`
+}
+
 func TestLoad(t *testing.T) {
 	// Initialize config
 	initConfig(t)
@@ -47,6 +55,7 @@ func TestLoad(t *testing.T) {
 	}{
 		{IsExpectedError: false, TestingValue: &testConfig1{}, ExpectingValue: &testConfig1{IntVal: 12345, StringVal: "string", BoolVal: false}},
 		{IsExpectedError: false, TestingValue: &testConfig2{}, ExpectingValue: &testConfig2{StringVal: "string", ErrorVal: ""}},
+		{IsExpectedError: false, TestingValue: &testConfig3{}, ExpectingValue: &testConfig3{T{"string"}}},
 	}
 
 	// Do test
