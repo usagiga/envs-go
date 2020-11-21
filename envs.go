@@ -7,8 +7,22 @@ import (
 	"strconv"
 )
 
-// Load from environment variables through reading struct key.
-// It compatible with Int, String, Bool only
+// Load from environment variables specified by "envs" struct tag.
+// It compatible with int, string, bool.
+//
+// Some fields are ignored:
+// - Fields have Incompatible types
+// - Fields have `envs:"-"` struct tag
+// - Fields don't have `envs` struct tag
+// - Specified environment variables has no value
+//
+// Some values are passed, it raises error:
+// - (int) Can't cast value
+//
+// Some values are passed, it raises panic:
+// - Passed `out` is NOT pointer or interface
+// - Passed `out`'s element is NOT struct
+// - Fields cannot be assignable value(readonly or unaddressable)
 func Load(out interface{}) (err error) {
 	t := reflect.TypeOf(out).Elem()
 	v := reflect.ValueOf(out).Elem()
