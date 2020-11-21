@@ -1,22 +1,11 @@
 package envs
 
 import (
-	"fmt"
 	"golang.org/x/xerrors"
-	"log"
 	"os"
 	"reflect"
 	"strconv"
 )
-
-var stdLogger *log.Logger
-var errLogger *log.Logger
-
-func init() {
-	prefix := "[envs] "
-	stdLogger = log.New(os.Stdout, prefix, log.LstdFlags)
-	errLogger = log.New(os.Stderr, prefix, log.LstdFlags)
-}
 
 // Load from environment variables through reading struct key.
 // It compatible with Int, String, Bool only
@@ -25,7 +14,6 @@ func Load(out interface{}) (err error) {
 	v := reflect.ValueOf(out).Elem()
 	fields := t.NumField()
 
-	stdLogger.Println("loading envs...")
 	for i := 0; i < fields; i++ {
 		fType := t.Field(i)
 		fTypeKind := fType.Type.Kind()
@@ -45,7 +33,6 @@ func Load(out interface{}) (err error) {
 		// Look up env
 		envStrVal, ok := os.LookupEnv(envKey)
 		if !ok || envKey == "" {
-			errLogger.Printf("environment variable '%s' on '%s' is not set or something went wrong. skipping...\n", envKey, fType.Name)
 			continue
 		}
 
@@ -68,14 +55,8 @@ func Load(out interface{}) (err error) {
 			envRefVal := reflect.ValueOf(envBoolVal)
 
 			fVal.Set(envRefVal)
-		default:
-			errMsg := fmt.Sprintf("not compatible with '%s'. skipping...", fTypeKind.String())
-			errLogger.Println(errMsg)
-
-			return xerrors.New(errMsg)
 		}
 	}
-	stdLogger.Println("Done loading envs")
 
 	return nil
 }
