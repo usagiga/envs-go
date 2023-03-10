@@ -47,7 +47,7 @@ If there's no `envs` struct tag, no value in specified environment keys or field
 
 ## Features
 
-- Compatible with `xerrors`
+- Compatible with Go 1.13 errors
 - Auto type detection
 
 ### Supported types
@@ -59,9 +59,7 @@ If there's no `envs` struct tag, no value in specified environment keys or field
 
 ## Dependencies
 
-- Go (1.15 or higher)
-- [golang.org/x/xerrors](https://pkg.go.dev/golang.org/x/xerrors)
-
+- Go (1.20 or higher)
 
 ## License
 

@@ -1,7 +1,8 @@
 package envs
 
 import (
-	"golang.org/x/xerrors"
+	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"strconv"
@@ -24,14 +25,14 @@ import (
 func Load(out interface{}) (err error) {
 	outKind := reflect.TypeOf(out).Kind()
 	if outKind != reflect.Ptr && outKind != reflect.Interface {
-		return xerrors.New("Passed incompatible type. `out` must be pointer or interface.")
+		return errors.New("passed incompatible type. `out` must be pointer or interface")
 	}
 
 	outType := reflect.TypeOf(out).Elem()
 	outValue := reflect.ValueOf(out).Elem()
 	outKind = outType.Kind()
 	if outKind != reflect.Struct {
-		return xerrors.New("Passed incompatible type. `out`'s element must be struct.")
+		return errors.New("passed incompatible type. `out`'s element must be struct")
 	}
 
 	for i := 0; i < outType.NumField(); i++ {
@@ -40,7 +41,7 @@ func Load(out interface{}) (err error) {
 		fieldVal := outValue.Field(i)
 
 		if !fieldVal.CanSet() {
-			return xerrors.New("Passed incompatible type. `out`'s fields must be assignable.")
+			return errors.New("passed incompatible type. `out`'s fields must be assignable")
 		}
 
 		// Get `envs` struct tag
@@ -57,7 +58,7 @@ func Load(out interface{}) (err error) {
 		if fieldKind == reflect.Struct {
 			err = Load(fieldVal.Addr().Interface())
 			if err != nil {
-				return xerrors.Errorf("Error raised in nested value: %w", err)
+				return fmt.Errorf("error raised in nested value: %w", err)
 			}
 			continue
 		}
@@ -81,7 +82,7 @@ func Load(out interface{}) (err error) {
 		case reflect.Int:
 			newFieldVal, err := strconv.Atoi(envVal)
 			if err != nil {
-				return xerrors.Errorf("Can't cast int value: %w", err)
+				return fmt.Errorf("can't cast int value: %w", err)
 			}
 
 			fieldVal.SetInt(int64(newFieldVal))
